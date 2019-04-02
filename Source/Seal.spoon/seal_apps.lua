@@ -14,29 +14,34 @@ obj.appSearchPaths = {
    "/System/Library/CoreServices/",
    "/usr/local/Cellar",
    "/Library/Scripts",
-   "~/Library/Scripts"
+   "~/Library/Scripts",
+   "~/Library/Application Scripts"
 }
 
 local modifyNameMap = function(info, add)
    for _, item in ipairs(info) do
-      icon = nil
-      local displayname = item.kMDItemDisplayName or hs.fs.displayName(item.kMDItemPath)
-      displayname = displayname:gsub("%.app$", "", 1)
-      if string.find(item.kMDItemPath, "%.prefPane$") then
-         displayname = displayname .. " preferences"
-         if add then
-            icon = hs.image.iconForFile(item.kMDItemPath)
+      local displayname = item.kMDItemDisplayName or (item.kMDItemPath and hs.fs.displayName(item.kMDItemPath))
+      if displayname then
+         icon = nil
+         displayname = displayname:gsub("%.app$", "", 1)
+         displayname = displayname:gsub("%.applescript$", "", 1)
+         displayname = displayname:gsub("%.scpt$", "", 1)
+         if string.find(displayname, "%.prefPane$") then
+            displayname = displayname .. " preferences"
          end
-      end
-      if add then
-         bundleID = item.kMDItemCFBundleIdentifier
-         obj.appCache[displayname] = {
-            path = item.kMDItemPath,
-            bundleID = bundleID,
-            icon = icon
-         }
-      else
-         obj.appCache[displayname] = nil
+         if add then
+            if item.kMDItemPath then
+               icon = hs.image.iconForFile(item.kMDItemPath)
+            end
+            bundleID = item.kMDItemCFBundleIdentifier
+            obj.appCache[displayname] = {
+               path = item.kMDItemPath,
+               bundleID = bundleID,
+               icon = icon
+            }
+         else
+            obj.appCache[displayname] = nil
+         end
       end
    end
 end
